@@ -9,7 +9,7 @@ of avaliable drinks and create shopping list
 #### Necessarily abilities
 - Api helper library
 - Paralleling of long-polling and event processing
-- First snapshot of chat-bot, getting recepies from list of drinks
+- First snapshot of chat-bot, getting recipes from list of drinks
 - Storing your drinks in chat-bot memory and ability to check cocktails
 that you can create from your drinks
 - Addind and removing drinks to list
@@ -19,4 +19,4 @@ that you can create from your drinks
 #### Extra abilities
 - Auto-removing drinks with considering of cooked cocktails
 - Party mode with separated drink list
-- Auto-parsing of recepies sites in moments of low demand
+- Auto-parsing of recipes sites in moments of low demand
