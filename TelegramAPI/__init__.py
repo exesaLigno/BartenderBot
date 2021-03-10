@@ -41,14 +41,6 @@ class Bot:
         return token
 
 
-    def addMessageHandler(self, function):
-        self.message_handler = function
-
-
-    def addCallbackQueryHandler(self, function):
-        self.callback_query_handler = function
-
-
     @accessify.private
     def _makeRequest(self, method, **kwargs):
         """Creating request to Telegram API from token and requred method"""
@@ -137,3 +129,25 @@ class Bot:
         if result["ok"]:
             result = result["result"]
         return result
+
+
+    @staticmethod
+    def protectSymbols(text):
+        new_text = ""
+        for symbol in text:
+            if symbol in "*_~-`[]()":
+                new_text += "\\"
+            new_text += symbol
+        return new_text
+
+
+    def verifyMarkdown(text):
+        return True
+
+
+    def handler(self):
+        def decorator(handler):
+            self.message_handler = handler
+            return handler
+
+        return decorator

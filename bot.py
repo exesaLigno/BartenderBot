@@ -5,10 +5,11 @@ import sys
 
 bot = TelegramAPI.Bot(token_file = "token.txt")
 
+
+@bot.handler()
 def handler(event):
     print(event)
-    event.answer("Нет ты " + event.text)
+    event.answer("Нет ты " + event.text.lower())
 
 
-bot.addMessageHandler(handler)
 bot.polling()
