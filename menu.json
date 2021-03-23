@@ -1,0 +1,23 @@
+{
+    "whiskey and cola": [
+        "whiskey",
+        "cola",
+        "ice"
+    ],
+    "gin and tonic": [
+        "gin",
+        "tonic",
+        "ice"
+    ],
+    "cuba libre": [
+        "rum",
+        "cola",
+        "ice"
+    ],
+    "Белый русский": [
+        "Бэйлис",
+        "Водка",
+        "Сливки",
+        "Лед"
+    ]
+}

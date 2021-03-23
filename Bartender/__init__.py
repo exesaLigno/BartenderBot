@@ -1,31 +1,54 @@
 import accessify
 import json
+import string
 
 class Bartender:
 
-    def __init__(self, name_file_recipes):
-        self.file_receipes = open(name_file_recipes, "r")
-        self.receipes = self.file_receipes.read()
-        self.receipes_dict = json.loads(self.receipes)
+    def __init__(self):
+        self.receipes_dict = {}
+        self.loadReceipes("menu.json")
 
-    def getIngredients(self, coctail_name):
-        return self.receipes_dict[coctail_name]
+    def loadReceipes(self, name_file_recipes):
+        with open(name_file_recipes, "r") as file_receipes:
+            receipes = file_receipes.read()
+            self.receipes_dict = json.loads(receipes)
 
-    def addCoctail(self, coctail_name, receipe):
-        self.receipes_dict[coctail_name] = receipe
+    def dumpReceipes(self, name_file_recipes):
+        with open(name_file_recipes, "w") as file_receipes:
+            file_receipes.write(json.dumps(self.receipes_dict, indent = 4,
+                                            ensure_ascii = False))
 
 
-    def getShoplist(self, coctail_names):
+    def getCocktailIngredients(self, cocktail_name):
+        return self.receipes_dict[cocktail_name]
 
-        coctail_names_list = []
-        if type(coctail_names) == str:
-            coctail_names = coctail_names.lower
-            coctail_names_list = coctail_names.split(',')
 
-        #разделяю, обрезаю с конца и начала слова пробелы
+    def addCocktail(self, cocktail_name, receipe):
+        self.receipes_dict[cocktail_name] = receipe
+        self.dumpReceipes("menu.json")
+
+
+    def getShoplist(self, cocktail_names):
+
+        cocktail_names_list = []
+
+        if type(cocktail_names) == str:
+            cocktail_names = cocktail_names.lower()
+            cocktail_names_list = cocktail_names.split(',')
+
+        elif type(cocktail_names) == list:
+            cocktail_names_list = cocktail_names
+
+        else:
+            print("Unsupported type")
+
+        for i in range(0, len(cocktail_names_list)):
+            cocktail_names_list[i] = cocktail_names_list[i].strip()
+
 
         shoplist = []
-        for elem in coctail_names_list:
+
+        for elem in cocktail_names_list:
             shoplist += self.receipes_dict[elem]
 
         shoplist_set = set(shoplist)
@@ -33,7 +56,41 @@ class Bartender:
 
         return shoplist
 
+    @staticmethod
+    def canDococktail(ingredients_list, cocktail_ingredients):
 
-#TODO выдает рецепты по названию коктейлей,
-# по списку ингридиентов дает всевозможные коктейли
-# по набору коктейлей выдает список ингридиент
+        ingredients_counter = 0
+
+        for ingredient in cocktail_ingredients:
+            if ingredient in ingredients_list:
+                ingredients_counter += 1
+            else:
+                return False
+
+        if ingredients_counter == len(cocktail_ingredients):
+            return True
+
+    def getCocktails(self, ingredients):
+
+        ingredients_list = []
+        cocktails_list = []
+
+        if type(ingredients) == str:
+            ingredients = ingredients.lower()
+            ingredients_list = ingredients.split(',')
+
+        elif type(ingredients) == list:
+            ingredients_list = ingredients
+
+        else:
+            print("Unsupported type")
+
+        for i in range(0, len(ingredients_list)):
+            ingredients_list[i] = ingredients_list[i].strip()
+
+        for cocktail in self.receipes_dict:
+            if self.canDococktail(ingredients_list, self.receipes_dict[cocktail]):
+                cocktails_list += [cocktail]
+
+
+        return cocktails_list

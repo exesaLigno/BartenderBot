@@ -1,4 +1,0 @@
-{
-  "pinocolada" : ["aldkfj", "adf;lkja", "a;dlfkj"],
-  "shit" : ["aldkfj", "qer", "poi"]
-}
