@@ -1,6 +1,9 @@
 import accessify
 import requests
+import json
 import TelegramAPI.message
+import TelegramAPI.callback
+
 
 class Bot:
 
@@ -28,8 +31,8 @@ class Bot:
         self.event_queue = []
         self.polling_offset = 0
 
-        self.message_handler = None
-        self.callback_query_handler = None
+        self.message_handler_func = None
+        self.callback_handler_func = None
 
 
     @accessify.private
@@ -76,7 +79,10 @@ class Bot:
 
         if updates["ok"] and len(updates["result"]) > 0:
             for update in updates["result"]:
-                self.event_queue += [TelegramAPI.message.Message(self, update["message"])]
+                if "message" in update:
+                    self.event_queue += [TelegramAPI.message.Message(self, update["message"])]
+                elif "callback_query" in update:
+                    self.event_queue += [TelegramAPI.callback.Callback(self, update["callback_query"])]
             #self.event_queue += updates["result"]
             self.polling_offset = updates["result"][-1]["update_id"] + 1
 
@@ -88,7 +94,10 @@ class Bot:
 
             while len(self.event_queue) != 0:
                 event = self.event_queue.pop(0) # Need to parallel
-                self.message_handler(event)
+                if type(event) == TelegramAPI.message.Message:
+                    self.message_handler_func(event)
+                elif type(event) == TelegramAPI.callback.Callback:
+                    self.callback_handler_func(event)
 
 
     def polling(self):
@@ -100,6 +109,10 @@ class Bot:
                     entities = None, disable_web_page_preview = False,
                     disable_notification = False, reply_to_message_id = None,
                     allow_sending_without_reply = True, reply_markup = None):
+
+        if reply_markup != None:
+            reply_markup = json.dumps({"inline_keyboard" : reply_markup}, ensure_ascii = False)
+
         if photo == None:
             result = self._makeRequest("sendMessage", chat_id = chat_id, text = text,
                         parse_mode = parse_mode, entities = entities, disable_web_page_preview = disable_web_page_preview,
@@ -131,6 +144,13 @@ class Bot:
         return result
 
 
+    def answerCallbackQuery(self, callback_id, text, show_alert = False):
+        result = self._makeRequest("answerCallbackQuery", callback_query_id = callback_id, text = text, show_alert = show_alert)
+        if result["ok"]:
+            result = result["result"]
+        return result
+
+
     @staticmethod
     def protectSymbols(text):
         new_text = ""
@@ -145,9 +165,17 @@ class Bot:
         return True
 
 
-    def handler(self):
-        def decorator(handler):
-            self.message_handler = handler
-            return handler
+    def message_handler(self):
+        def decorator(message_handler):
+            self.message_handler_func = message_handler
+            return message_handler
+
+        return decorator
+
+
+    def callback_handler(self):
+        def decorator(callback_handler):
+            self.callback_handler_func = callback_handler
+            return callback_handler
 
         return decorator
