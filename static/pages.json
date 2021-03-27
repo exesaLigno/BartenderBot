@@ -1,0 +1,42 @@
+{
+  "bar": {
+    "text": "*Бар*\n\nТут срать",
+    "keyboard": [[{"text": "Мой бар", "callback_data": "page: my_bar"}, {"text": "Шоплист", "callback_data": "page: shoplist"}],
+                [{"text": "Предпочтения", "callback_data": "page: suggestions"}, {"text": "Список желаемого", "callback_data": "page: wishlist"}]]
+  },
+
+  "start": {
+    "text": "*Привет, это бот\-бармен*\n\nЧе хотел, я еще не работаю, но можешь написать /bar",
+    "keyboard": null
+  },
+
+  "help": {
+    "text": "*Привет, это бот\-бармен*\n\nЧе хотел, я еще не работаю, но можешь написать /bar",
+    "keyboard": null
+  },
+
+  "settings": {
+    "text": "*Настройки ебать*\n\nТоже не работают",
+    "keyboard": null
+  },
+
+  "my_bar": {
+    "text": "Список имеющихся у вас напитков: говно и жопа",
+    "keyboard": [[{"text": "Назад", "callback_data": "page: bar"}]]
+  },
+
+  "wishlist": {
+    "text": "Вот что вы хотите попробовать",
+    "keyboard": [[{"text": "Назад", "callback_data": "page: bar"}]]
+  },
+
+  "shoplist": {
+    "text": "Типа шоплист",
+    "keyboard": [[{"text": "Назад", "callback_data": "page: bar"}]]
+  },
+
+  "suggestions": {
+    "text": "Ваши предпочтения",
+    "keyboard": [[{"text": "Назад", "callback_data": "page: bar"}]]
+  },
+}

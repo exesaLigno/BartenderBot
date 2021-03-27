@@ -14,8 +14,8 @@ class Callback:
     def answerMessage(self, text, reply = False):
         return self.message.answer(text, reply)
 
-    def editMessage(self, text):
-        return self.message.edit(text)
+    def editMessage(self, text, reply_markup = None):
+        return self.message.edit(text, reply_markup = reply_markup)
 
     def deleteMessage(self):
         return self.message.delete(text)

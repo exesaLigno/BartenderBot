@@ -104,6 +104,14 @@ class Bot:
         self._polling()
 
 
+    def setCommandsList(self, commands):
+        commands_list = []
+        for command, description in commands.items():
+            commands_list += [{"command": command, "description": description}]
+
+        return self._makeRequest("setMyCommands", commands = json.dumps(commands_list))
+
+
 
     def sendMessage(self, chat_id, text = None, photo = None, parse_mode = "MarkdownV2",
                     entities = None, disable_web_page_preview = False,
@@ -129,8 +137,12 @@ class Bot:
         return result
 
 
-    def editMessage(self, chat_id, message_id, text):
-        result = self._makeRequest("editMessageText", chat_id = chat_id, message_id = message_id, text = text)
+    def editMessage(self, chat_id, message_id, text, reply_markup = None):
+
+        if reply_markup != None:
+            reply_markup = json.dumps({"inline_keyboard" : reply_markup}, ensure_ascii = False)
+
+        result = self._makeRequest("editMessageText", chat_id = chat_id, message_id = message_id, text = text, reply_markup = reply_markup)
 
         if result["ok"]:
             result = TelegramAPI.message.Message(self, result["result"])
