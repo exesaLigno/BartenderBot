@@ -1,6 +1,9 @@
 #!/usr/bin/python3
 import TelegramAPI
 import sys
+import json
+import time
+
 
 
 commands_list = {
@@ -10,7 +13,8 @@ commands_list = {
                     "settings": "Настройки чат-бота"
                 }
 
-static = 
+with open("static/pages.json") as static_data:
+    pages = json.loads(static_data.read())
 
 
 bot = TelegramAPI.Bot(token_file = "token.txt")
@@ -25,23 +29,43 @@ def handler(event):
         search_processor(event)
 
 
+def parse_commands(commands):
+    new_commands = []
+
+    for action in commands.split(";"):
+        cmd = action.split(":")
+        if len(cmd) == 1:
+            cmd = {"command": cmd[0].strip()}
+        elif len(cmd) == 2:
+            cmd = {"command": cmd[0].strip(), "data": cmd[1].split(",")}
+            for i in range(0, len(cmd["data"])):
+                cmd["data"][i] = cmd["data"][i].strip()
+
+        new_commands.append(cmd)
+
+    return new_commands
+
+
 @bot.callback_handler()
-def chandler(event):
-    actions = event.data.split(";")
+def callback_handler(event):
+    commands_list = parse_commands(event.data)
 
-    actions_dict = {}
+    for command in commands_list:
 
-    for action in actions:
-        key, value = action.split(":")
-        actions_dict[key.strip()] = value.strip()
+        if command["command"] == "close":
+            event.deleteMessage()
+            event.answer("Вкладка закрыта")
 
-    if "page" in actions_dict:
-        text = getPageText(actions_dict["page"])
-        keyboard = getPageKeyboard(actions_dict["page"])
+        elif command["command"] == "set_page":
+            text = getPageText(command["data"][0])
+            keyboard = getPageKeyboard(command["data"][0])
 
-        result = event.editMessage(text, reply_markup = keyboard)
+            event.editMessage(text, reply_markup = keyboard)
+            event.answer("Выполнено")
 
-        event.answer("Выполнено")
+        else:
+            print("Получена неподдерживаемая комманда", command)
+            event.answer("Кажется, эта кнопка не работает")
 
 
 def command_processor(event):
@@ -52,43 +76,44 @@ def command_processor(event):
 
     sended = event.answer(text, reply_markup = keyboard)
 
+    event.delete()
+
 
 def search_processor(event):
-    event.answer("Окей, ищу коктейль \"" + event.text + "\"")
+    search_results = event.answer("Окей, ищу коктейль *" + event.text + "*")
+    time.sleep(10)   # Типа ищется коктейль в базе
+
+    keyboard = [[{"text": "Маргарита", "callback_data": "set_page: cocktail, 1, search, fuck any"}],
+                [{"text": "Белый Русский", "callback_data": "set_page: cocktail, 2, search, fuck any"}],
+                [{"text": "Куба Либре", "callback_data": "set_page: cocktail, 3, search, fuck any"}],
+                [{"text": "Ром-Кола", "callback_data": "set_page: cocktail, 4, search, fuck any"}],
+                [{"text": "Виски-Кола", "callback_data": "set_page: cocktail, 5, search, fuck any"}],
+                [{"text": "Зеленая Фея", "callback_data": "set_page: cocktail, 6, search, fuck any"}],
+                [{"text": "Керш", "callback_data": "set_page: cocktail, 7, search, fuck any"}],
+                [{"text": "<<", "callback_data": "prev"}, {"text": ">>", "callback_data": "next"}]]
+
+    search_results.edit("Вот список всего, что мы смогли найти по запросу *" + event.text + "*\n`Страница 1/2`", reply_markup = keyboard)
+
+    event.delete()
 
 
-def getPageText(page_name):
-    if page_name == "bar":
-        return "*Бар*\n\nТут срать"
+def getPageText(page_name, *args):
+    if page_name in pages:
+        return pages[page_name]["text"]
 
-    elif page_name == "my_bar":
-        return "Список имеющихся у вас напитков: говно и жопа"
+    elif page_name == "cocktail":
+        return "Типа коктейль короче"
 
-    elif page_name == "shoplist":
-        return "Типа шоплист"
+    else:
+        return "Данная страница еще не работает"
 
-    elif page_name == "suggestions":
-        return "Ваши предпочтения"
+def getPageKeyboard(page_name, *args):
+    if page_name in pages:
+        return pages[page_name]["keyboard"]
 
-    elif page_name == "wishlist":
-        return "Вот что вы хотите попробовать"
-
-    elif page_name in ["help", "start"]:
-        return "*Привет, это бот\-бармен*\n\nЧе хотел, я еще не работаю, но можешь написать /bar"
-
-    elif page_name == "settings":
-        return "*Настройки ебать*\n\nТоже не работают"
-
-def getPageKeyboard(page_name):
-    if page_name == "bar":
-        return [[{"text": "Мой бар", "callback_data": "page: my_bar"}, {"text": "Шоплист", "callback_data": "page: shoplist"}],
-                [{"text": "Предпочтения", "callback_data": "page: suggestions"}, {"text": "Список желаемого", "callback_data": "page: wishlist"}]]
-
-    elif page_name in ["my_bar", "shoplist", "suggestions", "wishlist"]:
-        return [[{"text": "Назад", "callback_data": "page: bar"}]]
-
-    elif page_name in ["start", "help", "settings"]:
-        return None
+    else:
+        return [[{"text": "Закрыть", "callback_data": "close"}]]
 
 
-bot.polling()
+if __name__ == "__main__":
+    bot.polling()

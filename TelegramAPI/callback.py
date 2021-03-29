@@ -18,7 +18,7 @@ class Callback:
         return self.message.edit(text, reply_markup = reply_markup)
 
     def deleteMessage(self):
-        return self.message.delete(text)
+        return self.message.delete()
 
     def answer(self, text, show_alert = False):
         return self.bot.answerCallbackQuery(self.callback_id, text, show_alert)

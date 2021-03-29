@@ -3,6 +3,7 @@ import requests
 import json
 import TelegramAPI.message
 import TelegramAPI.callback
+import threading
 
 
 class Bot:
@@ -28,11 +29,12 @@ class Bot:
         else:
             print("\x1b[1;31mHere raising an exception (incorrect token)\x1b[0m")
 
-        self.event_queue = []
         self.polling_offset = 0
 
         self.message_handler_func = None
         self.callback_handler_func = None
+
+        self.threads = []
 
 
     @accessify.private
@@ -77,31 +79,59 @@ class Bot:
     def _getUpdates(self):
         updates = self._makeRequest("getUpdates", offset = self.polling_offset, timeout = 1)
 
+        events = []
+
         if updates["ok"] and len(updates["result"]) > 0:
             for update in updates["result"]:
                 if "message" in update:
-                    self.event_queue += [TelegramAPI.message.Message(self, update["message"])]
+                    events.append(TelegramAPI.message.Message(self, update["message"]))
                 elif "callback_query" in update:
-                    self.event_queue += [TelegramAPI.callback.Callback(self, update["callback_query"])]
+                    events.append(TelegramAPI.callback.Callback(self, update["callback_query"]))
             #self.event_queue += updates["result"]
             self.polling_offset = updates["result"][-1]["update_id"] + 1
+
+        return events
 
 
     @accessify.private
     def _polling(self):
         while True:
-            self._getUpdates()
 
-            while len(self.event_queue) != 0:
-                event = self.event_queue.pop(0) # Need to parallel
-                if type(event) == TelegramAPI.message.Message:
-                    self.message_handler_func(event)
-                elif type(event) == TelegramAPI.callback.Callback:
-                    self.callback_handler_func(event)
+            for th in self.threads[:]:
+                if not th.is_alive():
+                    th.join()
+                    self.threads.remove(th)
 
 
-    def polling(self):
-        self._polling()
+            events = self._getUpdates()
+
+            threads = [threading.Thread(target = self.process, args = (event, )) for event in events]
+
+            for th in threads:
+                th.start()
+                self.threads.append(th)
+
+
+    def process(self, event):
+        if type(event) == TelegramAPI.message.Message:
+            self.message_handler_func(event)
+        elif type(event) == TelegramAPI.callback.Callback:
+            self.callback_handler_func(event)
+
+
+    def polling(self, non_stop = True):
+
+        if non_stop:
+            while True:
+                try:
+                    self._polling()
+
+                except Exception as error:
+                    print(error)
+                    continue
+
+        else:
+            self._polling()
 
 
     def setCommandsList(self, commands):
@@ -137,12 +167,12 @@ class Bot:
         return result
 
 
-    def editMessage(self, chat_id, message_id, text, reply_markup = None):
+    def editMessage(self, chat_id, message_id, text, parse_mode = "MarkdownV2", reply_markup = None):
 
         if reply_markup != None:
             reply_markup = json.dumps({"inline_keyboard" : reply_markup}, ensure_ascii = False)
 
-        result = self._makeRequest("editMessageText", chat_id = chat_id, message_id = message_id, text = text, reply_markup = reply_markup)
+        result = self._makeRequest("editMessageText", chat_id = chat_id, message_id = message_id, parse_mode = parse_mode, text = text, reply_markup = reply_markup)
 
         if result["ok"]:
             result = TelegramAPI.message.Message(self, result["result"])
