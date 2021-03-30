@@ -1,0 +1,14 @@
+{
+    "id": 2,
+    "name": "Джин тоник",
+    "Ingredients": [
+        "gin",
+        "tonic",
+        "ice"
+    ],
+    "Receipe": "Shake gin and tonic 1:1, add ice",
+    "Sweetness": "Bitter like a tonic",
+    "Strength": "For girls one glass is enough",
+    "Prettiness": "Enough pretty",
+    "Estime": "Davydov approved"
+}
