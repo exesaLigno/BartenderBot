@@ -4,13 +4,15 @@ import string
 import os
 from difflib import SequenceMatcher
 import Bartender.cocktail
+import Bartender.bar
 
 class BarTender:
 
     latest_id = 0;
 
     def __init__(self):
-        pass
+        self.bar_dict = {}
+
 
     def setPath(self, path):
         self.fakeroot_path = path
@@ -160,3 +162,16 @@ class BarTender:
                 cocktails_list += [cocktail.name]
 
         return cocktails_list
+
+
+
+    def createBar(self, id):
+        new_bar = Bartender.bar.Bar(id, self.fakeroot_path)
+        self.bar_dict[id] = new_bar
+
+
+    def getBar(self, id):
+        return self.bar_dict[id]
+
+    def addIngrToBar(self, id, ingredient):
+        self.bar_dict[id].addIngredient(ingredient)
