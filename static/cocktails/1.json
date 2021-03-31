@@ -1,0 +1,14 @@
+{
+    "id": 1,
+    "name": "Виски кола",
+    "Ingredients": [
+        "whiskey",
+        "cola",
+        "ice"
+    ],
+    "Receipe": "Shake whiskey and cola 1:1, add ice",
+    "Sweetness": "Sweet like a cola",
+    "Strength": "For girls one glass is enough ",
+    "Prettiness": "Brown substaince",
+    "Estime": "From my opinion 10/10"
+}
