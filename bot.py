@@ -3,6 +3,7 @@ import TelegramAPI
 import sys
 import json
 import time
+import threading
 
 
 
@@ -116,4 +117,8 @@ def getPageKeyboard(page_name, *args):
 
 
 if __name__ == "__main__":
-    bot.polling()
+    polling_thread = threading.Thread(target = bot.polling, daemon = True)
+    polling_thread.start()
+
+    while True:
+        pass
