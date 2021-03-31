@@ -17,6 +17,7 @@ class BarTender:
     def setPath(self, path):
         self.fakeroot_path = path
 
+
     def loadReceipes(self):
         self.latest_id = 0
         self.receipes_list = []
@@ -49,8 +50,10 @@ class BarTender:
             return percent
         return 0
 
+#parallel
     def search(self, asked_coctail_name):
         cocktails_list = []
+        threads = []
         for cocktail in self.receipes_list:
             percent = self.searchEngine(cocktail.name, asked_coctail_name)
             if percent > 0:
@@ -139,6 +142,7 @@ class BarTender:
         if ingredients_counter == len(cocktail_ingredients):
             return True
 
+#parallel
     def getCocktails(self, ingredients):
 
         ingredients_list = []
