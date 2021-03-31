@@ -11,7 +11,7 @@ class BarTender:
     latest_id = 0;
 
     def __init__(self):
-        self.bar_dict = {}
+        self.bars_dict = {}
 
 
     def setPath(self, path):
@@ -54,7 +54,7 @@ class BarTender:
         for cocktail in self.receipes_list:
             percent = self.searchEngine(cocktail.name, asked_coctail_name)
             if percent > 0:
-                cocktails_list += [(percent, cocktail.name)]
+                cocktails_list += [(percent, cocktail.id)]
 
         cocktails_list.sort()
         cocktails_list.reverse()
@@ -139,10 +139,10 @@ class BarTender:
         if ingredients_counter == len(cocktail_ingredients):
             return True
 
-    def getCocktails(self, ingredients):
+    def getCocktailsByIngredients(self, ingredients):
 
         ingredients_list = []
-        cocktails_list = []
+        cocktails_id_list = []
 
         if type(ingredients) == str:
             ingredients = ingredients.lower()
@@ -159,19 +159,29 @@ class BarTender:
 
         for cocktail in self.receipes_list:
             if self.canDococktail(ingredients_list, cocktail.Ingredients):
-                cocktails_list += [cocktail.name]
+                cocktails_id_list += [cocktail.id]
 
-        return cocktails_list
+        return cocktails_id_list
+
+
+    def getCocktail(self, id):
+        for cocktail in self.receipes_list:
+
+            if cocktail.id == id:
+                return cocktail
+
+        return None
+
 
 
 
     def createBar(self, id):
         new_bar = Bartender.bar.Bar(id, self.fakeroot_path)
-        self.bar_dict[id] = new_bar
+        self.bars_dict[id] = new_bar
 
 
     def getBar(self, id):
-        return self.bar_dict[id]
+        return self.bars_dict[id]
 
     def addIngrToBar(self, id, ingredient):
-        self.bar_dict[id].addIngredient(ingredient)
+        self.bars_dict[id].addIngredient(ingredient)
