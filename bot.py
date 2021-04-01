@@ -4,6 +4,7 @@ import sys
 import json
 import time
 import threading
+import Bartender
 
 
 
@@ -20,6 +21,10 @@ with open("static/pages.json") as static_data:
 
 bot = TelegramAPI.Bot(token_file = "token.txt")
 bot.setCommandsList(commands_list)
+
+bartender = Bartender.BarTender()
+bartender.setPath("/home/exesa_ligno/Documents/Study/Programming/Mipt/4sem/BartenderBot/")
+bartender.loadReceipes()
 
 
 @bot.message_handler()
@@ -41,9 +46,14 @@ def parse_commands(commands):
             cmd = {"command": cmd[0].strip(), "data": cmd[1].split(",")}
             for i in range(0, len(cmd["data"])):
                 cmd["data"][i] = cmd["data"][i].strip()
+                try:
+                    cmd["data"][i] = int(cmd["data"][i])
+                except Exception:
+                    pass
 
         new_commands.append(cmd)
 
+    print(new_commands)
     return new_commands
 
 
@@ -58,10 +68,10 @@ def callback_handler(event):
             event.answer("Вкладка закрыта")
 
         elif command["command"] == "set_page":
-            text = getPageText(command["data"][0])
-            keyboard = getPageKeyboard(command["data"][0])
-
-            event.editMessage(text, reply_markup = keyboard)
+            text = getPageText(command["data"][0], command["data"][1::])
+            keyboard = getPageKeyboard(command["data"][0], command["data"][1::])
+            print(text)
+            print(event.editMessage(text, reply_markup = keyboard))
             event.answer("Выполнено")
 
         else:
@@ -82,35 +92,54 @@ def command_processor(event):
 
 def search_processor(event):
     search_results = event.answer("Окей, ищу коктейль *" + event.text + "*")
-    time.sleep(10)   # Типа ищется коктейль в базе
 
-    keyboard = [[{"text": "Маргарита", "callback_data": "set_page: cocktail, 1, search, fuck any"}],
-                [{"text": "Белый Русский", "callback_data": "set_page: cocktail, 2, search, fuck any"}],
-                [{"text": "Куба Либре", "callback_data": "set_page: cocktail, 3, search, fuck any"}],
-                [{"text": "Ром-Кола", "callback_data": "set_page: cocktail, 4, search, fuck any"}],
-                [{"text": "Виски-Кола", "callback_data": "set_page: cocktail, 5, search, fuck any"}],
-                [{"text": "Зеленая Фея", "callback_data": "set_page: cocktail, 6, search, fuck any"}],
-                [{"text": "Керш", "callback_data": "set_page: cocktail, 7, search, fuck any"}],
-                [{"text": "<<", "callback_data": "prev"}, {"text": ">>", "callback_data": "next"}]]
+    text = getPageText("search", [event.text])
+    keyboard = getPageKeyboard("search", [event.text])
 
-    search_results.edit("Вот список всего, что мы смогли найти по запросу *" + event.text + "*\n`Страница 1/2`", reply_markup = keyboard)
+    search_results.edit(text, reply_markup = keyboard)
 
     event.delete()
 
 
-def getPageText(page_name, *args):
+def getPageText(page_name, args = None):
     if page_name in pages:
         return pages[page_name]["text"]
 
+    elif page_name == "search":
+        if len(bartender.search(args[0])) != 0:
+            return "Вот, что мне удалось найти по запросу *" + args[0] + "*"
+        else:
+            return "К сожалению, по запросу *" + args[0] + "* ничего не удалось найти"
+
     elif page_name == "cocktail":
-        return "Типа коктейль короче"
+        text = "Вот рецепт коктейля *" + bartender.getCocktail(args[0]).name + "*\n\nДля приготовления понадобятся:\n"
+        for ingredient in bartender.getCocktail(args[0]).ingredients:
+            text += "  \- _" + ingredient + "_\n"
+        text += "\n"
+        text += bartender.getCocktail(args[0]).receipe
+        return text
 
     else:
         return "Данная страница еще не работает"
 
-def getPageKeyboard(page_name, *args):
+def getPageKeyboard(page_name, args = None):
     if page_name in pages:
         return pages[page_name]["keyboard"]
+
+    elif page_name == "search":
+        keyboard = [[{"text": bartender.getCocktail(id).name, "callback_data": "set_page: cocktail, " + str(id) + ", search, " + args[0]}] for id in bartender.search(args[0])]
+        if len(keyboard) != 0:
+            keyboard += [[{"text": "<<", "callback_data": "prev"}, {"text": ">>", "callback_data": "next"}]]
+        keyboard += [[{"text": "Закрыть", "callback_data": "close"}]]
+
+        return keyboard
+
+
+    elif page_name == "cocktail":
+        return [[{"text": "Добавить в избранное", "callback_data": "add_priority"}],
+                [{"text": "Добавить недостающее в шоплист", "callback_data": "add_shoplist"}],
+                [{"text": "Назад", "callback_data": "set_page: " + args[1] + ", " + args[2]}],
+                [{"text": "Закрыть", "callback_data": "close"}]]
 
     else:
         return [[{"text": "Закрыть", "callback_data": "close"}]]
