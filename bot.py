@@ -23,7 +23,7 @@ bot = TelegramAPI.Bot(token_file = "token.txt")
 bot.setCommandsList(commands_list)
 
 bartender = Bartender.BarTender()
-bartender.setPath("/home/exesa_ligno/Documents/Study/Programming/Mipt/4sem/BartenderBot/")
+bartender.setPath("/home/exesa_ligno/Documents/Study/Programming/Mipt/4sem/BartenderBot")
 bartender.loadReceipes()
 
 
@@ -68,8 +68,8 @@ def callback_handler(event):
             event.answer("Вкладка закрыта")
 
         elif command["command"] == "set_page":
-            text = getPageText(command["data"][0], command["data"][1::])
-            keyboard = getPageKeyboard(command["data"][0], command["data"][1::])
+            text = getPageText(event.chat_id, command["data"][0], command["data"][1::])
+            keyboard = getPageKeyboard(event.chat_id, command["data"][0], command["data"][1::])
             print(text)
             print(event.editMessage(text, reply_markup = keyboard))
             event.answer("Выполнено")
@@ -82,8 +82,8 @@ def callback_handler(event):
 def command_processor(event):
     command = event.text[1::]
 
-    text = getPageText(command)
-    keyboard = getPageKeyboard(command)
+    text = getPageText(event.chat_id, command)
+    keyboard = getPageKeyboard(event.chat_id, command)
 
     sended = event.answer(text, reply_markup = keyboard)
 
@@ -93,15 +93,15 @@ def command_processor(event):
 def search_processor(event):
     search_results = event.answer("Окей, ищу коктейль *" + event.text + "*")
 
-    text = getPageText("search", [event.text])
-    keyboard = getPageKeyboard("search", [event.text])
+    text = getPageText(event.chat_id, "search", [event.text])
+    keyboard = getPageKeyboard(event.chat_id, "search", [event.text])
 
     search_results.edit(text, reply_markup = keyboard)
 
     event.delete()
 
 
-def getPageText(page_name, args = None):
+def getPageText(user_id, page_name, args = None):
     if page_name in pages:
         return pages[page_name]["text"]
 
@@ -112,17 +112,37 @@ def getPageText(page_name, args = None):
             return "К сожалению, по запросу *" + args[0] + "* ничего не удалось найти"
 
     elif page_name == "cocktail":
+        try:
+            bar = bartender.getBar(user_id)
+        except Exception as error:
+            print(error)
+            bartender.createBar(user_id)
+            bar = bartender.getBar(user_id)
+
         text = "Вот рецепт коктейля *" + bartender.getCocktail(args[0]).name + "*\n\nДля приготовления понадобятся:\n"
+        missing_count = 0
         for ingredient in bartender.getCocktail(args[0]).ingredients:
-            text += "  \- _" + ingredient + "_\n"
+            if ingredient in bar.bar_list or ingredient in ["Лёд", "Виски", "Кола", "Текила"]:  # Hard comparing added just for demonstration
+                text += "  ☒ "
+            else:
+                text += "  ☐ "
+                missing_count += 1
+            text += "_" + ingredient + "_\n"
+
         text += "\n"
         text += bartender.getCocktail(args[0]).receipe
+
+        if missing_count != 0:
+            text += "\n\n`Некоторых ингредиентов для этого коктейля не хватает, но вы можете добавить их в шоплист, нажав соответствующую кнопку ниже`\n"
+        else:
+            text += "\n\n`У вас есть все необходимое для приготовления этого рецепта!`\n"
+
         return text
 
     else:
         return "Данная страница еще не работает"
 
-def getPageKeyboard(page_name, args = None):
+def getPageKeyboard(user_id, page_name, args = None):
     if page_name in pages:
         return pages[page_name]["keyboard"]
 
@@ -136,10 +156,33 @@ def getPageKeyboard(page_name, args = None):
 
 
     elif page_name == "cocktail":
-        return [[{"text": "Добавить в избранное", "callback_data": "add_priority"}],
-                [{"text": "Добавить недостающее в шоплист", "callback_data": "add_shoplist"}],
-                [{"text": "Назад", "callback_data": "set_page: " + args[1] + ", " + args[2]}],
-                [{"text": "Закрыть", "callback_data": "close"}]]
+        try:
+            bar = bartender.getBar(user_id)
+        except Exception as error:
+            print(error)
+            bartender.createBar(user_id)
+            bar = bartender.getBar(user_id)
+
+        missing_ingredients = []
+        for ingredient in bartender.getCocktail(args[0]).ingredients:
+            if ingredient not in bar.bar_list and ingredient not in ["Лёд", "Виски", "Кола", "Текила"]:  # Hard comparing added just for demonstration
+                missing_ingredients += [ingredient]
+
+        keyboard = []
+
+        keyboard += [[{"text": "Добавить в избранное", "callback_data": "add_priority"}]]
+
+        if len(missing_ingredients) != 0:
+            print(missing_ingredients)
+            adding_ingredients = ", ".join(missing_ingredients)
+            adding_ingredients = "test, test, test, test, test, test, test, test, test, test"
+            print(adding_ingredients)
+            keyboard += [[{"text": "Добавить недостающее в шоплист", "callback_data": "add_shoplist: " + adding_ingredients}]]
+
+        keyboard += [[{"text": "Назад", "callback_data": "set_page: " + args[1] + ", " + args[2]}]]
+        keyboard += [[{"text": "Закрыть", "callback_data": "close"}]]
+
+        return keyboard
 
     else:
         return [[{"text": "Закрыть", "callback_data": "close"}]]
