@@ -22,7 +22,8 @@
 
   "my_bar": {
     "text": "Список имеющихся у вас напитков:\n\n  \\- Напиток раз\n  \\- Напиток два",
-    "keyboard": [[{"text": "Назад", "callback_data": "back"}]]
+    "keyboard": [[{"text": "Добавить напитки вручную", "callback_data": "add_ingredients"}],
+                [{"text": "Назад", "callback_data": "back"}]]
   },
 
   "favourites": {

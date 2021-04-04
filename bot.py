@@ -38,6 +38,9 @@ def handler(message):
 
 @bot.callback_handler()
 def callback_handler(callback):
+
+    answer = "Выполнено"
+
     c = Context.getContext(callback.message)
 
     if c == None:
@@ -51,6 +54,22 @@ def callback_handler(callback):
         c.close()
         callback.message.delete()
         return
+    elif callback.data == "update_shoplist":
+        bar = bartender.getBar(callback.chat_id)
+        context = Context.getContext(callback.message)
+        cocktail_id = int(context.getPageInfo().split(":").pop())
+        cocktail = bartender.getCocktail(cocktail_id)
+        print("Добавляю ингредиенты в шоплист") # Shoplist not implemented in Bar class
+        answer = "Недостающие ингредиенты добавлены в ваш шоплист"
+    elif callback.data == "update_barlist":
+        bar = bartender.getBar(callback.chat_id)
+        context = Context.getContext(callback.message)
+        cocktail_id = int(context.getPageInfo().split(":").pop())
+        cocktail = bartender.getCocktail(cocktail_id)
+        for ingredient in cocktail.ingredients:
+            if ingredient not in bar.bar_list:
+                bar.addIngredient(ingredient)
+        answer = "Все ингредиенты добавлены в ваш бар"
     else:
         c.addContext(callback.data)
 
@@ -58,6 +77,8 @@ def callback_handler(callback):
     keyboard = getPageKeyboard(c.getPageInfo(), callback.chat_id)
 
     sended = callback.message.edit(text, reply_markup = keyboard)
+
+    callback.answer(answer)
 
     #print(sended)
 
@@ -114,10 +135,10 @@ def getPageText(context, id):
         text = "Вот рецепт коктейля *" + bartender.getCocktail(cocktail_id).name + "*\n\nДля приготовления понадобятся:\n"
         missing_count = 0
         for ingredient in bartender.getCocktail(cocktail_id).ingredients:
-            if ingredient in bar.bar_list or ingredient in ["Лёд", "Виски", "Кола", "Текила"]:  # Hard comparing added just for demonstration
-                text += "  ☒ "
+            if ingredient in bar.bar_list:
+                text += "  ▣ "
             else:
-                text += "  ☐ "
+                text += "  □ "
                 missing_count += 1
             text += "_" + ingredient + "_\n"
 
@@ -160,7 +181,7 @@ def getPageKeyboard(context, id):
 
         missing_count = 0
         for ingredient in bartender.getCocktail(cocktail_id).ingredients:
-            if ingredient not in bar.bar_list and ingredient not in ["Лёд", "Виски", "Кола", "Текила"]:  # Hard comparing added just for demonstration
+            if ingredient not in bar.bar_list:
                 missing_count += 1
 
         keyboard = []
@@ -168,10 +189,10 @@ def getPageKeyboard(context, id):
         keyboard += [[{"text": "Добавить в избранное", "callback_data": "add_favourites"}]]
 
         if missing_count != 0:
-            keyboard += [[{"text": "Добавить недостающее в шоплист", "callback_data": "update_shoplist"}]]
+            keyboard += [[{"text": "Добавить недостающее в шоплист", "callback_data": "update_shoplist"}],
+                            [{"text": "У меня есть все ингредиенты", "callback_data": "update_barlist"}]]
 
-        keyboard += [[{"text": "Назад", "callback_data": "back"}]]
-        keyboard += [[{"text": "Закрыть", "callback_data": "close"}]]
+        keyboard += [[{"text": "⬅️ К результатам поиска", "callback_data": "back"}]]
 
         return keyboard
 
