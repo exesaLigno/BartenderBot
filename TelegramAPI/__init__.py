@@ -119,7 +119,7 @@ class Bot:
             self.callback_handler_func(event)
 
 
-    def polling(self, non_stop = True):
+    def polling(self, non_stop = False):
 
         if non_stop:
             while True:
