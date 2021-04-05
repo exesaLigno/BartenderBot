@@ -24,7 +24,10 @@ class Context:
     def back(self):
         context = self.context.split("/")
         context.pop()
+        if (len(context) == 1):
+            return
         self.context = "/".join(context)
+        print(self.context)
 
     def close(self):
         self.database[self.chat_id].remove(self)

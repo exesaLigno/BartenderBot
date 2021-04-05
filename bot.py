@@ -26,6 +26,7 @@ bot.setCommandsList(commands_list)
 bartender = Bartender.BarTender()
 bartender.setPath("/home/exesa_ligno/Documents/Study/Programming/Mipt/4sem/BartenderBot")
 bartender.loadReceipes()
+bartender.loadBars()
 
 
 @bot.message_handler()
@@ -50,26 +51,44 @@ def callback_handler(callback):
 
     if callback.data == "back":
         c.back()
+
     elif callback.data == "close":
         c.close()
         callback.message.delete()
         return
+
+    elif callback.data == "prev":
+        context = c.getPageInfo().split(":")
+        context[1] = str(int(context[1]) - 1)
+        c.context = ""
+        c.addContext(":".join(context))
+
+    elif callback.data == "change_pages_ignore":
+        callback.answer("Листать дальше некуда")
+        return
+
+    elif callback.data == "next":
+        context = c.getPageInfo().split(":")
+        c.context = ""
+        context[1] = str(int(context[1]) + 1)
+        c.addContext(":".join(context))
+
     elif callback.data == "update_shoplist":
         bar = bartender.getBar(callback.chat_id)
         context = Context.getContext(callback.message)
         cocktail_id = int(context.getPageInfo().split(":").pop())
         cocktail = bartender.getCocktail(cocktail_id)
-        print("Добавляю ингредиенты в шоплист") # Shoplist not implemented in Bar class
+        bar.addMissingToShoplist(cocktail)
         answer = "Недостающие ингредиенты добавлены в ваш шоплист"
+
     elif callback.data == "update_barlist":
         bar = bartender.getBar(callback.chat_id)
         context = Context.getContext(callback.message)
         cocktail_id = int(context.getPageInfo().split(":").pop())
         cocktail = bartender.getCocktail(cocktail_id)
-        for ingredient in cocktail.ingredients:
-            if ingredient not in bar.bar_list:
-                bar.addIngredient(ingredient)
-        answer = "Все ингредиенты добавлены в ваш бар"
+        bar.addMissingToBar(cocktail)
+        answer = "Недостающие ингредиенты добавлены в ваш бар"
+
     else:
         c.addContext(callback.data)
 
@@ -101,7 +120,7 @@ def search_processor(message):
     search_results = message.answer("Окей, ищу коктейль *" + message.text + "*")
 
     c = Context(search_results)
-    c.addContext("search:" + message.text)
+    c.addContext("search:1:" + message.text)
 
     text = getPageText(c.getPageInfo(), message.chat_id)
     keyboard = getPageKeyboard(c.getPageInfo(), message.chat_id)
@@ -116,19 +135,23 @@ def getPageText(context, id):
         return pages[context]["text"]
 
     elif context.startswith("search"):
-        request = context.split(":").pop()
-        if len(bartender.search(request)) != 0:
-            return "Вот, что мне удалось найти по запросу *" + request + "*"
+        pages_count = lambda x: x // 7 + (0 if x % 7 == 0 else 1)
+        splitted = context.split(":")
+        request = splitted.pop()
+        page = splitted.pop()
+        results_count = len(bartender.search(request))
+        text = ""
+        if results_count != 0:
+            text += "Вот, что мне удалось найти по запросу *" + request + "*"
+            if pages_count(results_count) > 1:
+                text += "\n`Страница {} из {}`".format(page, pages_count(results_count))
         else:
-            return "К сожалению, по запросу *" + request + "* ничего не удалось найти"
+            text += "К сожалению, по запросу *" + request + "* ничего не удалось найти"
+
+        return text
 
     elif context.startswith("cocktail"):
-        try:
-            bar = bartender.getBar(id)
-        except Exception as error:
-            print(error)
-            bartender.createBar(id)
-            bar = bartender.getBar(id)
+        bar = bartender.getBar(id)
 
         cocktail_id = int(context.split(":").pop())
 
@@ -161,21 +184,26 @@ def getPageKeyboard(context, id):
         return pages[context]["keyboard"]
 
     elif context.startswith("search"):
-        request = context.split(":").pop()
-        keyboard = [[{"text": bartender.getCocktail(id).name, "callback_data": "cocktail:" + str(id)}] for id in bartender.search(request)]
-        if len(keyboard) != 0:
-            keyboard += [[{"text": "<<", "callback_data": "prev"}, {"text": ">>", "callback_data": "next"}]]
+        pages_count = lambda x: x // 7 + (0 if x % 7 == 0 else 1)
+        splitted = context.split(":")
+        request = splitted.pop()
+        page = int(splitted.pop())
+        results = bartender.search(request)
+        keyboard = [[{"text": bartender.getCocktail(id).name, "callback_data": "cocktail:" + str(id)}] for id in results[7 * (page - 1) : 7 * page]]
+        if pages_count(len(results)) > 1:
+            if page == 1:
+                page_change_buttons = [{"text": "🚫", "callback_data": "change_pages_ignore"}, {"text": ">>", "callback_data": "next"}]
+            elif page == pages_count(len(results)):
+                page_change_buttons = [{"text": "<<", "callback_data": "prev"}, {"text": "🚫", "callback_data": "change_pages_ignore"}]
+            else:
+                page_change_buttons = [{"text": "<<", "callback_data": "prev"}, {"text": ">>", "callback_data": "next"}]
+            keyboard += [page_change_buttons]
         keyboard += [[{"text": "Закрыть", "callback_data": "close"}]]
 
         return keyboard
 
     elif context.startswith("cocktail"):
-        try:
-            bar = bartender.getBar(id)
-        except Exception as error:
-            print(error)
-            bartender.createBar(id)
-            bar = bartender.getBar(id)
+        bar = bartender.getBar(id)
 
         cocktail_id = int(context.split(":").pop())
 
