@@ -15,6 +15,3 @@ class Cocktail:
             cocktail = cocktail_file.read()
             cocktail_dict = json.loads(cocktail)
         return cocktail_dict
-
-
-        #something else
