@@ -143,7 +143,7 @@ class Bot:
 
 
 
-    def sendMessage(self, chat_id, text = None, photo = None, parse_mode = "MarkdownV2",
+    def sendMessage(self, chat_id, text = None, photo = None, parse_mode = "HTML",
                     entities = None, disable_web_page_preview = False,
                     disable_notification = False, reply_to_message_id = None,
                     allow_sending_without_reply = True, reply_markup = None):
@@ -167,7 +167,7 @@ class Bot:
         return result
 
 
-    def editMessage(self, chat_id, message_id, text, parse_mode = "MarkdownV2", reply_markup = None):
+    def editMessage(self, chat_id, message_id, text, parse_mode = "HTML", reply_markup = None):
 
         if reply_markup != None:
             reply_markup = json.dumps({"inline_keyboard" : reply_markup}, ensure_ascii = False)
