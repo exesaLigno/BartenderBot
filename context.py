@@ -27,7 +27,6 @@ class Context:
         if (len(context) == 1):
             return
         self.context = "/".join(context)
-        print(self.context)
 
     def close(self):
         self.database[self.chat_id].remove(self)
@@ -38,3 +37,9 @@ class Context:
 
     def addContext(self, context):
         self.context += "/" + context
+
+    def replaceContext(self, new_context):
+        context = self.context.split("/")
+        context.pop()
+        context.append(new_context)
+        self.context = "/".join(context)

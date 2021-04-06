@@ -1,7 +1,7 @@
 {
   "bar": {
     "text": "*Бар*\n\n`Описание функционала чат бота`",
-    "keyboard": [[{"text": "Мой бар", "callback_data": "my_bar"}, {"text": "Шоплист", "callback_data": "shoplist"}],
+    "keyboard": [[{"text": "Мой бар", "callback_data": "my_bar:1"}, {"text": "Шоплист", "callback_data": "shoplist:1"}],
                 [{"text": "Предпочтения", "callback_data": "suggestions"}, {"text": "Избранное", "callback_data": "favourites"}]]
   },
 
