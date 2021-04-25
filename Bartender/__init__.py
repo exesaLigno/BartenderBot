@@ -10,15 +10,11 @@ class BarTender:
 
     def __init__(self):
         self.bars_dict = {}
+        self.receipes_list = []
 
 
     def setPath(self, path):
         self.fakeroot_path = path
-
-    def loadReceipes(self):
-        self.receipes_list = []
-        for filename in sorted(os.listdir(self.fakeroot_path + "/static/cocktails/")):
-            self.receipes_list.append(Bartender.cocktail.Cocktail(self.fakeroot_path + "/static/cocktails/" + filename))
 
 
     @classmethod
@@ -31,19 +27,19 @@ class BarTender:
 
 
     def search(self, asked_coctail_name):
-        cocktails_list = []
+        receipes_list = []
         for cocktail in self.receipes_list:
             percent = self.searchEngine(cocktail.name, asked_coctail_name)
             if percent > 0:
-                cocktails_list += [(percent, cocktail.id)]
+                receipes_list += [(percent, cocktail.id)]
 
-        cocktails_list.sort()
-        cocktails_list.reverse()
+        receipes_list.sort()
+        receipes_list.reverse()
 
-        for k in range(0, len(cocktails_list)):
-            cocktails_list[k] = cocktails_list[k][1]
+        for k in range(0, len(receipes_list)):
+            receipes_list[k] = receipes_list[k][1]
 
-        return cocktails_list
+        return receipes_list
 
 
     def getCocktailsByIngredients(self, ingredients):
@@ -54,7 +50,6 @@ class BarTender:
         if type(ingredients) == str:
             ingredients = ingredients.lower()
             ingredients_list = ingredients.split(',')
-
         elif type(ingredients) == list:
             ingredients_list = ingredients
 
@@ -72,12 +67,20 @@ class BarTender:
 
 
     def getCocktail(self, id):
-        for cocktail in self.receipes_list:
+        return self.receipes_list[id]
 
-            if cocktail.id == id:
-                return cocktail
 
-        return None
+
+    def loadReceipes(self):
+        cocktails_dir_location = self.fakeroot_path + "/static/cocktails/"
+        Bartender.cocktail.Cocktail.setCocktailsDirLocation(cocktails_dir_location)
+        files = os.listdir(cocktails_dir_location)
+        self.receipes_list = [None for k in range(0, len(files))]
+        for filename in files:
+            id = int(filename.split(".")[0])
+            cocktail = Bartender.cocktail.Cocktail(id)
+            cocktail.loadCocktail()
+            self.receipes_list[id] = cocktail
 
 
 
