@@ -12,11 +12,11 @@ class BarTender:
         self.bars_dict = {}
         self.receipes_list = []
 
+        self.ingredients_list = []
+
 
     def setPath(self, path):
         self.fakeroot_path = path
-
-
 
     @classmethod
     def searchEngine(cls, cocktail_name, asked_coctail_name):
@@ -24,31 +24,50 @@ class BarTender:
 
         for word in cocktail_name.split(" "):
             percent = SequenceMatcher(None, word.lower(), asked_coctail_name.lower()).ratio()
-            print(word, asked_coctail_name, percent)
             if percent > 0.6:
                 percent += SequenceMatcher(None, cocktail_name.lower(), asked_coctail_name.lower()).ratio()
-                print(cocktail_name, asked_coctail_name, percent)
                 if percent > 0.9:
                     return percent
             else:
                 continue
         return 0
 
+    def getIngredients(self):
+
+        for cocktail in self.receipes_list:
+            self.ingredients_list += cocktail.ingredients
+
+        self.ingredients_list = list(set(self.ingredients_list))
 
     def search(self, asked_coctail_name):
-        receipes_list = []
+
+        cocktails_list = []
+        ingredients_list = []
+
+
         for cocktail in self.receipes_list:
             percent = self.searchEngine(cocktail.name, asked_coctail_name)
             if percent > 0:
-                receipes_list += [(percent, cocktail.id)]
+                cocktails_list += [(percent, cocktail.id)]
+        cocktails_list.sort()
+        cocktails_list.reverse()
+        for k in range(0, len(cocktails_list)):
+            cocktails_list[k] = cocktails_list[k][1]
 
-        receipes_list.sort()
-        receipes_list.reverse()
 
-        for k in range(0, len(receipes_list)):
-            receipes_list[k] = receipes_list[k][1]
 
-        return receipes_list
+        for ingredient in self.ingredients_list:
+            percent = self.searchEngine(ingredient, asked_coctail_name)
+            if percent > 0:
+                ingredients_list += [(percent, ingredient)]
+        ingredients_list.sort()
+        ingredients_list.reverse()
+        for k in range(0, len(ingredients_list)):
+            ingredients_list[k] = ingredients_list[k][1]
+
+        data_dict = {"cocktails_list": cocktails_list, "ingredients_list": ingredients_list}
+
+        return data_dict
 
 
     def getCocktailsByIngredients(self, ingredients):
@@ -90,6 +109,7 @@ class BarTender:
             cocktail = Bartender.cocktail.Cocktail(id)
             cocktail.loadCocktail()
             self.receipes_list[id] = cocktail
+        self.getIngredients()
 
 
 
