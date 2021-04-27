@@ -19,12 +19,19 @@ class Bar:
         cls.bars_dir_location = path
 
 
-
     def loadBar(self):
         name_bar_file = str(self.id) + ".json"
         with open(self.bars_dir_location + name_bar_file, "r") as bar_file:
             self.__dict__ = json.loads(bar_file.read())
             self.id = int(self.id)
+
+        bar_fields = ["id", "bar_list", "shoplist", "favourites_list"]
+        for field in bar_fields:
+            if field not in self.__dict__:
+                self.__dict__[field] = []
+
+
+
 
     def dumpBar(self):
         name_bar_file = str(self.id) + ".json"
