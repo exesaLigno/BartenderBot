@@ -2,19 +2,20 @@ import json
 
 class Cocktail:
 
-    def __init__(self, file_name = None):
-        if file_name == None:
-            pass
-        else:
-            self.cocktail_file_name = file_name
-            self.__dict__ = self.loadReceipe()
+    def __init__(self, id):
+        self.id = id
 
-    def loadReceipe(self):
-        cocktail_dict = {}
-        with open(self.cocktail_file_name, "r") as cocktail_file:
-            cocktail = cocktail_file.read()
-            cocktail_dict = json.loads(cocktail)
-        return cocktail_dict
+    @classmethod
+    def setCocktailsDirLocation(cls, path):
+        cls.cocktails_dir_location = path
 
+    def loadCocktail(self):
+        name_cocktail_file = str(self.id) + ".json"
+        with open(self.cocktails_dir_location + name_cocktail_file, "r") as cocktail_file:
+            self.__dict__ = json.loads(cocktail_file.read())
+            self.id = int(self.id)
 
-        #something else
+    def dumpCocktail(self):
+        name_cocktail_file = str(self.id) + ".json"
+        with open(self.cocktails_dir_location + name_cocktail_file, "w") as cocktail_file:
+            cocktail_file.write(json.dumps(self.__dict__, indent = 4, ensure_ascii = False))

@@ -1,14 +1,14 @@
 {
     "id": 1,
-    "name": "Виски кола",
-    "Ingredients": [
-        "whiskey",
-        "cola",
-        "ice"
+    "name": "Виски-Кола",
+    "ingredients": [
+        "Виски",
+        "Кола",
+        "Лёд"
     ],
-    "Receipe": "Shake whiskey and cola 1:1, add ice",
-    "Sweetness": "Sweet like a cola",
-    "Strength": "For girls one glass is enough ",
-    "Prettiness": "Brown substaince",
-    "Estime": "From my opinion 10/10"
+    "receipe": "Смешайте виски с колой в соотношении 1:1, добавьте лёд",
+    "sweetness": "Sweet like a cola",
+    "strength": "For girls one glass is enough ",
+    "prettiness": "Brown substaince",
+    "estime": "From my opinion 10/10"
 }

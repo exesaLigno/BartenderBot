@@ -3,7 +3,10 @@ class Message:
         self.bot = bot
         self.chat_id = message_dict["chat"]["id"]
         self.message_id = message_dict["message_id"]
-        self.text = message_dict["text"]
+        if "text" in message_dict:
+            self.text = message_dict["text"]
+        else:
+            self.text = "unsupported message"
 
     def __str__(self):
         return "\x1b[2mMessage " + str(self.message_id) + " from chat " + str(self.chat_id) + ":\x1b[0;1m " + self.text + "\x1b[0m"

@@ -1,43 +1,44 @@
 {
   "bar": {
-    "text": "*Бар*\n\nТут срать",
-    "keyboard": [[{"text": "Мой бар", "callback_data": "set_page: my_bar"}, {"text": "Шоплист", "callback_data": "set_page: shoplist"}],
-                [{"text": "Предпочтения", "callback_data": "set_page: suggestions"}, {"text": "Список желаемого", "callback_data": "set_page: wishlist"}],
-                [{"text": "Нерабочая кнопка", "callback_data": "fucking slave"}, {"text": "Сломанная страница", "callback_data": "set_page: fuck shit"}]]
+    "text": "<b>Бар</b>\n\n<code>Описание функционала чат бота</code>",
+    "keyboard": [[{"text": "Мой бар", "callback_data": "my_bar:1"}, {"text": "Шоплист", "callback_data": "shoplist:1"}],
+                [{"text": "Избранное", "callback_data": "favourites:1"}, {"text": "Все рецепты", "callback_data": "all:1"}],
+                [{"text": "Закрыть", "callback_data": "close"}]]
   },
 
   "start": {
-    "text": "*Привет, это бот\\-бармен*\n\nЧе хотел, я еще не работаю, но можешь написать /bar",
+    "text": "*Привет, это бот\\-бармен*\n\n`Я еще не работаю, но можешь написать /bar`",
     "keyboard": null
   },
 
   "help": {
-    "text": "*Привет, это бот\\-бармен*\n\nЧе хотел, я еще не работаю, но можешь написать /bar",
+    "text": "*Привет, это бот\\-бармен*\n\n`Я еще не работаю, но можешь написать /bar`",
     "keyboard": null
   },
 
   "settings": {
-    "text": "*Настройки ебать*\n\nТоже не работают",
+    "text": "*Настройки*\n\nТоже не работают",
     "keyboard": [[{"text": "Закрыть", "callback_data": "close"}]]
   },
 
   "my_bar": {
-    "text": "Список имеющихся у вас напитков: говно и жопа",
-    "keyboard": [[{"text": "Назад", "callback_data": "set_page: bar"}]]
+    "text": "Список имеющихся у вас напитков:\n\n  \\- Напиток раз\n  \\- Напиток два",
+    "keyboard": [[{"text": "Добавить напитки вручную", "callback_data": "add_ingredients"}],
+                [{"text": "Назад", "callback_data": "back"}]]
   },
 
-  "wishlist": {
-    "text": "Вот что вы хотите попробовать",
-    "keyboard": [[{"text": "Назад", "callback_data": "set_page: bar"}]]
+  "favourites": {
+    "text": "Вот ваши избранные рецепты",
+    "keyboard": [[{"text": "Назад", "callback_data": "back"}]]
   },
 
   "shoplist": {
     "text": "Типа шоплист",
-    "keyboard": [[{"text": "Назад", "callback_data": "set_page: bar"}]]
+    "keyboard": [[{"text": "Назад", "callback_data": "back"}]]
   },
 
   "suggestions": {
     "text": "Ваши предпочтения",
-    "keyboard": [[{"text": "Назад", "callback_data": "set_page: bar"}]]
+    "keyboard": [[{"text": "Назад", "callback_data": "back"}]]
   }
 }
