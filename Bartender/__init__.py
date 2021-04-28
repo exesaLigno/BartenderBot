@@ -70,6 +70,21 @@ class BarTender:
         return data_dict
 
 
+    @staticmethod
+    def canDoCocktail(ingredients_list, cocktail_ingredients):
+
+        ingredients_counter = 0
+
+        for ingredient in cocktail_ingredients:
+            if ingredient in ingredients_list:
+                ingredients_counter += 1
+            else:
+                return False
+
+        if ingredients_counter == len(cocktail_ingredients):
+            return True
+
+
     def getCocktailsByIngredients(self, ingredients):
 
         ingredients_list = []
@@ -88,7 +103,7 @@ class BarTender:
             ingredients_list[i] = ingredients_list[i].strip()
 
         for cocktail in self.receipes_list:
-            if self.canDococktail(ingredients_list, cocktail.Ingredients):
+            if self.canDoCocktail(ingredients_list, cocktail.ingredients):
                 cocktails_id_list += [cocktail.id]
 
         return cocktails_id_list
