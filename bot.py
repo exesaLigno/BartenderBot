@@ -199,7 +199,7 @@ def getPageText(context, id):
 
     elif context.startswith("my_bar"):
         page = context.split(":").pop()
-        results_count = len(bartender.getBar(id).bar_list)
+        results_count = len(bar.bar_list)
 
         if results_count != 0:
             text += "Вот какие напитки у вас имеются"
@@ -210,7 +210,7 @@ def getPageText(context, id):
 
     elif context.startswith("shoplist"):
         page = context.split(":").pop()
-        results_count = len(bartender.getBar(id).shoplist)
+        results_count = len(bar.shoplist)
 
         if results_count != 0:
             text += "Вот ваш список покупок"
@@ -221,7 +221,7 @@ def getPageText(context, id):
 
     elif context.startswith("favourites"):
         page = context.split(":").pop()
-        results_count = len(bartender.getBar(id).favourites_list)
+        results_count = len(bar.favourites_list)
 
         if results_count != 0:
             text += "Вот ваши избранные рецепты"
