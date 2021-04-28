@@ -19,17 +19,18 @@ class BarTender:
         self.fakeroot_path = path
 
     @classmethod
-    def searchEngine(cls, cocktail_name, asked_coctail_name):
+    def searchEngine(cls, cocktail_name, asked_cocktail_name):
         percent = 0
 
-        for word in cocktail_name.split(" "):
-            percent = SequenceMatcher(None, word.lower(), asked_coctail_name.lower()).ratio()
-            if percent > 0.6:
-                percent += SequenceMatcher(None, cocktail_name.lower(), asked_coctail_name.lower()).ratio()
-                if percent > 0.9:
-                    return percent
-            else:
-                continue
+        for word_cocktail in cocktail_name.split(" "):
+            for word_request in asked_cocktail_name.split(" "):
+                percent = SequenceMatcher(None, word_cocktail.lower(), word_request.lower()).ratio()
+                if percent > 0.6:
+                    percent += SequenceMatcher(None, cocktail_name.lower(), asked_cocktail_name.lower()).ratio()
+                    if percent > 0.9:
+                        return percent
+                else:
+                    continue
         return 0
 
     def getIngredients(self):
