@@ -187,6 +187,7 @@ def search_processor(message):
 def getPageText(context, id):
 
     pages_count = lambda x: x // 7 + (0 if x % 7 == 0 else 1)
+    bar = bartender.getBar(id)
 
     text = ""
 
@@ -281,8 +282,6 @@ def getPageText(context, id):
             text += "\n<code>Страница {} из {}</code>".format(page, pages_count(ingredients_count))
 
     elif context.startswith("cocktail"):
-        bar = bartender.getBar(id)
-
         cocktail_id = int(context.split(":").pop())
 
         text += "Вот рецепт коктейля <b>" + bartender.getCocktail(cocktail_id).name + "</b>\n\nДля приготовления понадобятся:\n"
@@ -316,16 +315,16 @@ def getPageText(context, id):
 def getPageKeyboard(context, id):
 
     pages_count = lambda x: x // 7 + (0 if x % 7 == 0 else 1)
+    bar = bartender.getBar(id)
 
     if context == "bar":
         return [[{"text": "Мой бар", "callback_data": "my_bar:1"}, {"text": "Шоплист", "callback_data": "shoplist:1"}, {"text": "Избранное", "callback_data": "favourites:1"}],
                 [{"text": "Доступные рецепты", "callback_data": "available:1"}, {"text": "Все рецепты", "callback_data": "all:1"}],
-                [{"text": "Закрыть", "callback_data": "close"}]]
+                [{"text": "❌ Закрыть", "callback_data": "close"}]]
 
     elif context.startswith("my_bar"):
         splitted = context.split(":")
         page = int(splitted.pop())
-        bar = bartender.getBar(id)
         results = bar.bar_list
         keyboard = [[{"text": ingredient, "callback_data": "ingredient:" + ingredient}] for ingredient in results[7 * (page - 1) : 7 * page]]
         if pages_count(len(results)) > 1:
@@ -343,7 +342,6 @@ def getPageKeyboard(context, id):
     elif context.startswith("shoplist"):
         splitted = context.split(":")
         page = int(splitted.pop())
-        bar = bartender.getBar(id)
         results = bar.shoplist
         keyboard = [[{"text": ingredient, "callback_data": "ingredient:" + ingredient}] for ingredient in results[7 * (page - 1) : 7 * page]]
         if pages_count(len(results)) > 1:
@@ -361,7 +359,6 @@ def getPageKeyboard(context, id):
     elif context.startswith("favourites"):
         splitted = context.split(":")
         page = int(splitted.pop())
-        bar = bartender.getBar(id)
         results = bar.favourites_list
         keyboard = [[{"text": bartender.getCocktail(id).name + " ⭐️", "callback_data": "cocktail:" + str(id)}] for id in results[7 * (page - 1) : 7 * page]]
         if pages_count(len(results)) > 1:
@@ -379,7 +376,6 @@ def getPageKeyboard(context, id):
     elif context.startswith("available"):
         splitted = context.split(":")
         page = int(splitted.pop())
-        bar = bartender.getBar(id)
         results = bartender.getCocktailsByIngredients(bar.bar_list)
 
         for cocktail in bar.favourites_list:
@@ -403,7 +399,6 @@ def getPageKeyboard(context, id):
     elif context.startswith("all"):
         splitted = context.split(":")
         page = int(splitted.pop())
-        bar = bartender.getBar(id)
         results = bartender.receipes_list
 
         keyboard = [[{"text": cocktail.name + (" ⭐️" if cocktail.id in bar.favourites_list else ""), "callback_data": "cocktail:" + str(cocktail.id)}] for cocktail in results[7 * (page - 1) : 7 * page]]
@@ -421,7 +416,6 @@ def getPageKeyboard(context, id):
 
     elif context.startswith("ingredient"):
         ingredient_name = context.split(":").pop()
-        bar = bartender.getBar(id)
         keyboard = []
         if ingredient_name not in bar.bar_list and ingredient_name not in bar.shoplist:
             keyboard += [[{"text": "Добавить в бар", "callback_data": "add_barlist"}],
@@ -448,10 +442,10 @@ def getPageKeyboard(context, id):
             keyboard = [[{"text": bartender.getCocktail(id).name + (" ⭐️" if id in bar.favourites_list else ""), "callback_data": "cocktail:" + str(id)}] for id in results[7 * (page - 1) : 7 * page]]
         elif len(results["cocktails_list"]) != 0 and len(results["ingredients_list"]) != 0:
             keyboard = [[{"text": "Коктейли", "callback_data": "csearch:1:" + request}, {"text": "Ингредиенты", "callback_data": "isearch:1:" + request}],
-                        [{"text": "Закрыть", "callback_data": "close"}]]
+                        [{"text": "❌ Закрыть", "callback_data": "close"}]]
             return keyboard
         else:
-            keyboard = [[{"text": "Закрыть", "callback_data": "close"}]]
+            keyboard = [[{"text": "❌ Закрыть", "callback_data": "close"}]]
             return keyboard
 
         if pages_count(len(results)) > 1:
@@ -462,7 +456,7 @@ def getPageKeyboard(context, id):
             else:
                 page_change_buttons = [{"text": "<<", "callback_data": "prev"}, {"text": ">>", "callback_data": "next"}]
             keyboard += [page_change_buttons]
-        keyboard += [[{"text": "Закрыть", "callback_data": "close"}]]
+        keyboard += [[{"text": "❌ Закрыть", "callback_data": "close"}]]
 
         return keyboard
 
@@ -470,7 +464,6 @@ def getPageKeyboard(context, id):
         splitted = context.split(":")
         request = splitted.pop()
         page = int(splitted.pop())
-        bar = bartender.getBar(id)
         results = bartender.search(request)["cocktails_list"]
 
         keyboard = [[{"text": bartender.getCocktail(id).name + (" ⭐️" if id in bar.favourites_list else ""), "callback_data": "cocktail:" + str(id)}] for id in results[7 * (page - 1) : 7 * page]]
@@ -506,8 +499,6 @@ def getPageKeyboard(context, id):
         return keyboard
 
     elif context.startswith("cocktail"):
-        bar = bartender.getBar(id)
-
         cocktail_id = int(context.split(":").pop())
 
         missing_count = 0
@@ -528,7 +519,7 @@ def getPageKeyboard(context, id):
         return keyboard
 
     else:
-        return [[{"text": "Закрыть", "callback_data": "close"}]]
+        return [[{"text": "❌ Закрыть", "callback_data": "close"}]]
 
 
 
