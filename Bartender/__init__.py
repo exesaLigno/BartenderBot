@@ -5,6 +5,7 @@ import os
 from difflib import SequenceMatcher
 import Bartender.cocktail
 import Bartender.bar
+import datetime
 
 class BarTender:
 
@@ -14,19 +15,12 @@ class BarTender:
 
         self.ingredients_list = []
 
+        self.recent_requests = {}
+
 
     def setPath(self, path):
         self.fakeroot_path = path
 
-<<<<<<< HEAD
-
-    def loadReceipes(self):
-        self.latest_id = 0
-        self.receipes_list = []
-        for filename in os.listdir(self.fakeroot_path + "/static/cocktails/"):
-            self.receipes_list.append(Bartender.cocktail.Cocktail(self.fakeroot_path + "/static/cocktails/" + filename))
-            self.latest_id += 1
-=======
     @classmethod
     def searchEngine(cls, cocktail_name, asked_cocktail_name):
         percent = 0
@@ -41,7 +35,6 @@ class BarTender:
                 else:
                     continue
         return 0
->>>>>>> 4c921487452fbcaf2a969c0e166bee9f399c82c5
 
     def getIngredients(self):
 
@@ -50,21 +43,18 @@ class BarTender:
 
         self.ingredients_list = list(set(self.ingredients_list))
 
-    def search(self, asked_coctail_name):
+    def search(self, asked_cocktail_name):
+
+        if asked_cocktail_name in self.recent_requests:
+            self.recent_requests[asked_cocktail_name]["timestamp"] = datetime.datetime.now()
+            return self.recent_requests[asked_cocktail_name]["result"]
+
 
         cocktails_list = []
         ingredients_list = []
 
-
-<<<<<<< HEAD
-#parallel
-    def search(self, asked_coctail_name):
-        cocktails_list = []
-        threads = []
-=======
->>>>>>> 4c921487452fbcaf2a969c0e166bee9f399c82c5
         for cocktail in self.receipes_list:
-            percent = self.searchEngine(cocktail.name, asked_coctail_name)
+            percent = self.searchEngine(cocktail.name, asked_cocktail_name)
             if percent > 0:
                 cocktails_list += [(percent, cocktail.id)]
         cocktails_list.sort()
@@ -75,7 +65,7 @@ class BarTender:
 
 
         for ingredient in self.ingredients_list:
-            percent = self.searchEngine(ingredient, asked_coctail_name)
+            percent = self.searchEngine(ingredient, asked_cocktail_name)
             if percent > 0:
                 ingredients_list += [(percent, ingredient)]
         ingredients_list.sort()
@@ -83,9 +73,28 @@ class BarTender:
         for k in range(0, len(ingredients_list)):
             ingredients_list[k] = ingredients_list[k][1]
 
+
         data_dict = {"cocktails_list": cocktails_list, "ingredients_list": ingredients_list}
+        time = datetime.datetime.now()
+
+        if len(self.recent_requests) < 100:
+            self.recent_requests[asked_cocktail_name] = {"timestamp": time, "result": data_dict}
+        else:
+            latest_request = {"key": None, "latest_request_time": None}
+            for key in self.recent_requests:
+                if latest_request["latest_request_time"] == None:
+                    latest_request["latest_request_time"] = self.recent_requests[key]["timestamp"]
+                    latest_request["key"] = key
+                elif self.recent_requests[key]["timestamp"] < latest_request["latest_request_time"]:
+                    latest_request["latest_request_time"] = self.recent_requests[key]["timestamp"]
+                    latest_request["key"] = key
+
+            del self.recent_requests[latest_request["key"]]
+            self.recent_requests[asked_cocktail_name] = {"timestamp": time, "result": data_dict}
 
         return data_dict
+
+        #"текст_запроса": {"timestamp": время_последнего обращения к этому запросу, "result": результат_поиска}
 
 
     @staticmethod
@@ -102,13 +111,8 @@ class BarTender:
         if ingredients_counter == len(cocktail_ingredients):
             return True
 
-<<<<<<< HEAD
-#parallel
-    def getCocktails(self, ingredients):
-=======
 
     def getCocktailsByIngredients(self, ingredients):
->>>>>>> 4c921487452fbcaf2a969c0e166bee9f399c82c5
 
         ingredients_list = []
         cocktails_id_list = []
