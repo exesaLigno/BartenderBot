@@ -6,6 +6,8 @@ from difflib import SequenceMatcher
 import Bartender.cocktail
 import Bartender.bar
 import datetime
+import asyncio
+import threading
 
 class BarTender:
 
@@ -17,19 +19,21 @@ class BarTender:
 
         self.recent_requests = {}
 
+        self.active_threads = []
+
 
     def setPath(self, path):
         self.fakeroot_path = path
 
     @classmethod
-    def searchEngine(cls, cocktail_name, asked_cocktail_name):
+    def searchEngine(cls, cocktail_name, request):
         percent = 0
 
         for word_cocktail in cocktail_name.split(" "):
-            for word_request in asked_cocktail_name.split(" "):
+            for word_request in request.split(" "):
                 percent = SequenceMatcher(None, word_cocktail.lower(), word_request.lower()).ratio()
                 if percent > 0.6:
-                    percent += SequenceMatcher(None, cocktail_name.lower(), asked_cocktail_name.lower()).ratio()
+                    percent += SequenceMatcher(None, cocktail_name.lower(), request.lower()).ratio()
                     if percent > 0.9:
                         return percent
                 else:
@@ -43,42 +47,14 @@ class BarTender:
 
         self.ingredients_list = list(set(self.ingredients_list))
 
-    def search(self, asked_cocktail_name):
-
-        if asked_cocktail_name in self.recent_requests:
-            self.recent_requests[asked_cocktail_name]["timestamp"] = datetime.datetime.now()
-            return self.recent_requests[asked_cocktail_name]["result"]
 
 
-        cocktails_list = []
-        ingredients_list = []
+    def completeRecentsDict(self, data_dict, request):
 
-        for cocktail in self.receipes_list:
-            percent = self.searchEngine(cocktail.name, asked_cocktail_name)
-            if percent > 0:
-                cocktails_list += [(percent, cocktail.id)]
-        cocktails_list.sort()
-        cocktails_list.reverse()
-        for k in range(0, len(cocktails_list)):
-            cocktails_list[k] = cocktails_list[k][1]
-
-
-
-        for ingredient in self.ingredients_list:
-            percent = self.searchEngine(ingredient, asked_cocktail_name)
-            if percent > 0:
-                ingredients_list += [(percent, ingredient)]
-        ingredients_list.sort()
-        ingredients_list.reverse()
-        for k in range(0, len(ingredients_list)):
-            ingredients_list[k] = ingredients_list[k][1]
-
-
-        data_dict = {"cocktails_list": cocktails_list, "ingredients_list": ingredients_list}
         time = datetime.datetime.now()
 
-        if len(self.recent_requests) < 100:
-            self.recent_requests[asked_cocktail_name] = {"timestamp": time, "result": data_dict}
+        if len(self.recent_requests) < 3:
+            self.recent_requests[request] = {"timestamp": time, "result": data_dict}
         else:
             latest_request = {"key": None, "latest_request_time": None}
             for key in self.recent_requests:
@@ -90,11 +66,65 @@ class BarTender:
                     latest_request["key"] = key
 
             del self.recent_requests[latest_request["key"]]
-            self.recent_requests[asked_cocktail_name] = {"timestamp": time, "result": data_dict}
+            self.recent_requests[request] = {"timestamp": time, "result": data_dict}
+
+
+
+    def searchInRecents(self, request):
+
+        if request in self.recent_requests:
+
+            self.recent_requests[request]["timestamp"] = datetime.datetime.now()
+            return self.recent_requests[request]["result"]
+
+
+        return None
+
+
+
+    def search(self, request):
+
+        founded_in_recents = self.searchInRecents(request)
+        if  founded_in_recents != None:
+            return founded_in_recents
+
+        cocktails_list = []
+        ingredients_list = []
+
+        for cocktail in self.receipes_list:
+            percent = self.searchEngine(cocktail.name, request)
+            if percent > 0:
+                cocktails_list += [(percent, cocktail.id)]
+        cocktails_list.sort()
+        cocktails_list.reverse()
+        for k in range(0, len(cocktails_list)):
+            cocktails_list[k] = cocktails_list[k][1]
+
+
+
+        for ingredient in self.ingredients_list:
+            percent = self.searchEngine(ingredient, request)
+            if percent > 0:
+                ingredients_list += [(percent, ingredient)]
+        ingredients_list.sort()
+        ingredients_list.reverse()
+        for k in range(0, len(ingredients_list)):
+            ingredients_list[k] = ingredients_list[k][1]
+
+        data_dict = {"cocktails_list": cocktails_list, "ingredients_list": ingredients_list}
+
+        thread = threading.Thread(target = self.completeRecentsDict, args = (data_dict, request,))
+        thread.start()
+
+        for th in self.active_threads:
+            if not th.is_alice():
+                th.join()
+                self.active_threads.remove(th)
+
+        self.active_threads.append(thread)
 
         return data_dict
 
-        #"текст_запроса": {"timestamp": время_последнего обращения к этому запросу, "result": результат_поиска}
 
 
     @staticmethod
