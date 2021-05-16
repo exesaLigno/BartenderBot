@@ -29,8 +29,8 @@ class BarTender:
     def searchEngine(cls, cocktail_name, request):
         percent = 0
 
-        for word_cocktail in cocktail_name.split(" "):
-            for word_request in request.split(" "):
+        for word_cocktail in cocktail_name.split():
+            for word_request in request.split():
                 percent = SequenceMatcher(None, word_cocktail.lower(), word_request.lower()).ratio()
                 if percent > 0.6:
                     percent += SequenceMatcher(None, cocktail_name.lower(), request.lower()).ratio()
@@ -94,9 +94,9 @@ class BarTender:
         for cocktail in self.receipes_list:
             percent = self.searchEngine(cocktail.name, request)
             if percent > 0:
-                cocktails_list += [(percent, cocktail.id)]
-        cocktails_list.sort()
-        cocktails_list.reverse()
+                cocktails_list.append((percent, cocktail.id))
+        cocktails_list.sort(reverse = True)
+        #cocktails_list.reverse()
         for k in range(0, len(cocktails_list)):
             cocktails_list[k] = cocktails_list[k][1]
 
@@ -105,9 +105,9 @@ class BarTender:
         for ingredient in self.ingredients_list:
             percent = self.searchEngine(ingredient, request)
             if percent > 0:
-                ingredients_list += [(percent, ingredient)]
-        ingredients_list.sort()
-        ingredients_list.reverse()
+                ingredients_list.append((percent, ingredient))
+        ingredients_list.sort(reverse = True)
+        #ingredients_list.reverse()
         for k in range(0, len(ingredients_list)):
             ingredients_list[k] = ingredients_list[k][1]
 
@@ -117,7 +117,8 @@ class BarTender:
         thread.start()
 
         for th in self.active_threads:
-            if not th.is_alice():
+            print("I'm in active_threads")
+            if not th.is_alive():
                 th.join()
                 self.active_threads.remove(th)
 
@@ -161,7 +162,7 @@ class BarTender:
 
         for cocktail in self.receipes_list:
             if self.canDoCocktail(ingredients_list, cocktail.ingredients):
-                cocktails_id_list += [cocktail.id]
+                cocktails_id_list.append(cocktail.id)
 
         return cocktails_id_list
 

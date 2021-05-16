@@ -22,13 +22,22 @@ class Bar:
     def loadBar(self):
         name_bar_file = str(self.id) + ".json"
         with open(self.bars_dir_location + name_bar_file, "r") as bar_file:
-            self.__dict__ = json.loads(bar_file.read())
-            self.id = int(self.id)
+            tmp_dict = json.loads(bar_file.read())
 
-        bar_fields = ["id", "bar_list", "shoplist", "favourites_list"]
+        object_correct = True
+
+        bar_fields = {"id" : 0, "bar_list" : [], "shoplist" : [], "favourites_list" : []}
         for field in bar_fields:
-            if field not in self.__dict__:
-                self.__dict__[field] = []
+            if field not in tmp_dict:
+                tmp_dict[field] = bar_fields[field]
+                object_correct = False
+
+        self.__dict__ = tmp_dict
+        self.id = int(self.id)
+
+        if not object_correct:
+            self.dumpBar()
+
 
 
 
