@@ -24,10 +24,10 @@ class Bar:
     def loadBar(self):
         with sqlite3.connect(DB_PATH) as conn:
             cur = conn.cursor()
-            cur.execute(f"SELECT bar_list, shoplist, favourites_list FROM bar WHERE id = {self.id}")
+            cur.execute("SELECT bar_list, shoplist, favourites_list FROM bar WHERE id = ?", (self.id, ))
             if (len(cur.fetchall()) == 0):
                 return
-            cur.execute(f"SELECT bar_list, shoplist, favourites_list FROM bar WHERE id = {self.id}")
+            cur.execute(f"SELECT bar_list, shoplist, favourites_list FROM bar WHERE id = ?", (self.id, ))
             bar_list, shoplist, favourites_list = map(str, cur.fetchone())
 
             bar_list = bar_list.split(",")
@@ -58,11 +58,11 @@ class Bar:
             shoplist = ",".join(self.shoplist)
             favourites_list = ",".join(list(map(str, self.favourites_list)))
 
-            cur.execute(f"SELECT bar_list, shoplist, favourites_list FROM bar WHERE id = {self.id}")
+            cur.execute("SELECT bar_list, shoplist, favourites_list FROM bar WHERE id = ?", (self.id, ))
             if (len(cur.fetchall()) != 0):
-                cur.execute(f"UPDATE bar SET id = '{self.id}', bar_list = '{bar_list}', shoplist = '{shoplist}', favourites_list = '{str(favourites_list)}' WHERE id = '{self.id}'")
+                cur.execute("UPDATE bar SET bar_list = ?, shoplist = ?, favourites_list = ? WHERE id = ?", (bar_list, shoplist, favourites_list, self.id))
             else:
-                cur.execute(f"INSERT INTO bar VALUES ('{self.id}', '{bar_list}', '{shoplist}', '{favourites_list}')")
+                cur.execute("INSERT INTO bar VALUES (?, ?, ?, ?)", (self.id, bar_list, shoplist, favourites_list))
             conn.commit()
 
 
