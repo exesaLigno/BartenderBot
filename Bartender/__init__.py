@@ -9,10 +9,13 @@ import datetime
 import asyncio
 import threading
 
+import sqlite3
+DB_PATH = "/home/ouvt02/proga/BartenderBot/database/db_bars.s3db"
+
 class BarTender:
 
     def __init__(self):
-        self.bars_dict = {}
+
         self.receipes_list = []
 
         self.ingredients_list = []
@@ -20,6 +23,8 @@ class BarTender:
         self.recent_requests = {}
 
         self.active_threads = []
+
+        bar.Bar.createDataBase()
 
 
     def setPath(self, path):
@@ -187,17 +192,12 @@ class BarTender:
 
 
     def loadBars(self):
-        bars_location = self.fakeroot_path + "/database/bars/"
-        Bartender.bar.Bar.setBarsDirLocation(bars_location)
-        for filename in os.listdir(bars_location):
-            id = int(filename.split(".")[0])
-            bar = Bartender.bar.Bar(id)
-            bar.loadBar()
-            self.bars_dict[id] = bar
+        pass
 
 
     def getBar(self, id):
-        if id not in self.bars_dict:
-            self.bars_dict[id] = Bartender.bar.Bar(id)
 
-        return self.bars_dict[id]
+        bar = Bartender.bar.Bar(id)
+        bar.loadBar()
+
+        return bar

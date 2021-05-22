@@ -1,10 +1,11 @@
 import accessify
 import json
 
+import sqlite3
+DB_PATH = "/home/ouvt02/proga/BartenderBot/database/db_bars.s3db"
+
 
 class Bar:
-
-    bars_dir_location = None
 
     def __init__(self, id):
         self.id = id
@@ -13,39 +14,56 @@ class Bar:
         self.favourites_list = []
 
 
-
     @classmethod
-    def setBarsDirLocation(cls, path):
-        cls.bars_dir_location = path
-
+    def createDataBase(cls):
+         with sqlite3.connect(DB_PATH) as conn:
+            cur = conn.cursor()
+            cur.execute("CREATE TABLE IF NOT EXISTS bar(id INTEGER, bar_list STRING, shoplist STRING, favourites_list STRING)")
+            conn.commit()
 
     def loadBar(self):
-        name_bar_file = str(self.id) + ".json"
-        with open(self.bars_dir_location + name_bar_file, "r") as bar_file:
-            tmp_dict = json.loads(bar_file.read())
+        with sqlite3.connect(DB_PATH) as conn:
+            cur = conn.cursor()
+            cur.execute(f"SELECT bar_list, shoplist, favourites_list FROM bar WHERE id = {self.id}")
+            if (len(cur.fetchall()) == 0):
+                return
+            cur.execute(f"SELECT bar_list, shoplist, favourites_list FROM bar WHERE id = {self.id}")
+            bar_list, shoplist, favourites_list = map(str, cur.fetchone())
 
-        object_correct = True
+            bar_list = bar_list.split(",")
+            shoplist = shoplist.split(",")
+            favourites_list = list(map(int, (favourites_list.split(","))))
 
-        bar_fields = {"id" : 0, "bar_list" : [], "shoplist" : [], "favourites_list" : []}
-        for field in bar_fields:
-            if field not in tmp_dict:
-                tmp_dict[field] = bar_fields[field]
-                object_correct = False
+            tmp_dict = {"id" : self.id, "bar_list" : bar_list, "shoplist" : shoplist, "favourites_list" : favourites_list}
 
-        self.__dict__ = tmp_dict
-        self.id = int(self.id)
+            object_correct = True
 
-        if not object_correct:
-            self.dumpBar()
+            bar_fields = {"id" : 0, "bar_list" : [], "shoplist" : [], "favourites_list" : []}
+            for field in bar_fields:
+                if field not in tmp_dict:
+                    tmp_dict[field] = bar_fields[field]
+                    object_correct = False
 
+            self.__dict__ = tmp_dict
+            self.id = int(self.id)
 
-
+            if not object_correct:
+                self.dumpBar()
 
 
     def dumpBar(self):
-        name_bar_file = str(self.id) + ".json"
-        with open(self.bars_dir_location + name_bar_file, "w") as bar_file:
-            bar_file.write(json.dumps(self.__dict__, indent = 4, ensure_ascii = False))
+        with sqlite3.connect(DB_PATH) as conn:
+            cur = conn.cursor()
+            bar_list = ",".join(self.bar_list)
+            shoplist = ",".join(self.shoplist)
+            favourites_list = ",".join(list(map(str, self.favourites_list)))
+
+            cur.execute(f"SELECT bar_list, shoplist, favourites_list FROM bar WHERE id = {self.id}")
+            if (len(cur.fetchall()) != 0):
+                cur.execute(f"UPDATE bar SET id = '{self.id}', bar_list = '{bar_list}', shoplist = '{shoplist}', favourites_list = '{str(favourites_list)}' WHERE id = '{self.id}'")
+            else:
+                cur.execute(f"INSERT INTO bar VALUES ('{self.id}', '{bar_list}', '{shoplist}', '{favourites_list}')")
+            conn.commit()
 
 
 
